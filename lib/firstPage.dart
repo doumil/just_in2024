@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_onboarding_slider/flutter_onboarding_slider.dart';
 import 'package:just_in2024/home_screen.dart';
-import 'package:just_in2024/model/conf.dart';
+import 'package:just_in2024/model/conf.dart'; // Import the Conf class
 
 class FirstPageSlide extends StatelessWidget {
   @override
@@ -26,6 +26,7 @@ class _FirstPageState extends State<FirstPage> {
   late SharedPreferences prefs;
   List<Conf> liteconf = [];
   String _selectedOption = "in"; // Default radio button value
+
   String dropdownValue = ""; // Default dropdown value
 
   @override
@@ -42,13 +43,13 @@ class _FirstPageState extends State<FirstPage> {
 
   // Load configuration data from API and SharedPreferences
   Future<void> _loadData() async {
-    var url = "https://okydigital.com/buzz_login/loadconf.php";
-    var res = await http.post(Uri.parse(url));
+    var url =
+        "https://badging-ticket.jcloud-ver-jpe.ik-server.com/api/registration-type";
+    var res = await http.get(Uri.parse(url));
     List<Conf> conf = (json.decode(res.body) as List)
         .map((data) => Conf.fromJson(data))
         .toList();
     liteconf = conf;
-
     // Load saved values from SharedPreferences
     prefs = await SharedPreferences.getInstance();
     String? savedConf = prefs.getString("conf");
@@ -255,14 +256,15 @@ class _FirstPageState extends State<FirstPage> {
                                 );
                               }).toList(),
                               onChanged: (value) async {
-                                var _v = value as String; // Cast 'value' to String
+                                var _v =
+                                    value as String; // Cast 'value' to String
                                 prefs = await SharedPreferences.getInstance();
-                                prefs.setString("conf", _v); // Use '_v' instead of 'value!'
+                                prefs.setString(
+                                    "conf", _v); // Use '_v' instead of 'value!'
                                 setState(() {
                                   dropdownValue = _v;
                                 });
                               },
-
                             ),
                           ),
                         ),
@@ -270,7 +272,7 @@ class _FirstPageState extends State<FirstPage> {
                     ),
                   ),
                 ),
-              )
+              ),
             ],
           ),
           margin: EdgeInsets.only(top: height * 0.63),

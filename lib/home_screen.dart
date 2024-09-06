@@ -6,12 +6,11 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:qr_flutter/qr_flutter.dart';
-
 import 'firstPage.dart';
 import 'model/conf.dart';
 import 'model/user_scanner.dart';
+import 'model/userScan.dart';
 import 'model/setinuser.dart';
-import 'syncrohn_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -24,22 +23,26 @@ class _HomeScreenState extends State<HomeScreen> {
   var dropdownValue;
   var response;
   String _data = "";
-  List<Conf> liteconf = [];
-  Userscan user1 = Userscan('', '', '', '', '', '', '', '', '', '', '', '');
+  //List<Conf> liteconf = [];
+  Userscan24 user = Userscan24(nom:'', prenom: '', email: '', societe: '', tel: '', profession: '', hashedOrderId: '', ticket: '',);
+  Userscan24 user1 = Userscan24(nom:'', prenom: '', email: '', societe: '', tel: '', profession: '', hashedOrderId: '', ticket: '',);
+  var order;
   InUser inUser1 = InUser('', '', '');
+  String ticketscan="";
 
   late SharedPreferences prefs;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    //_loadData();
   }
   void _openbadge(BuildContext context) async{
     prefs = await SharedPreferences.getInstance();
-    String? firstname = prefs.getString("firstname");
-    String? lastname = prefs.getString("lastname");
+    String? firstname = prefs.getString("prenom");
+    String? lastname = prefs.getString("nom");
     String? ticket = prefs.getString("ticket");
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -51,42 +54,58 @@ class _HomeScreenState extends State<HomeScreen> {
           content: SingleChildScrollView(
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.8,
+                maxHeight: MediaQuery.of(context).size.height * 0.4,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: IconButton(
+                        icon: Icon(Icons.close),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Center(child: Text('${firstname.toString()}')),
-                        Center(child: Text('${lastname.toString()}')),
-                        SizedBox(height: 10), // Add spacing between texts and VIP status
-                        Center(
-                          child: Text(
-                            '${ticket.toString()}',
+                    padding: const EdgeInsets.fromLTRB(0.0,0.0,0.0,4.0),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.verified,
+                            color: Colors.green,
+                            size: 50,
+                          ),
+                          Center(child: Text('${firstname.toString()} ${lastname.toString()}',
                             style: TextStyle(
-                              fontSize: 24.0,
-                              fontWeight: FontWeight.bold,
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          ),)),
+                          //Center(child: Text()),
+                          SizedBox(height: 10), // Add spacing between texts and VIP status
+                          Center(
+                            child: Text(
+                              '${ticket.toString()}',
+                              style: TextStyle(
+                                fontSize: 20.0,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
+                  SizedBox(height: 10,),
                   GestureDetector(
                     onTap: () {
                       Navigator.of(context).pop();
@@ -100,17 +119,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(10.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.verified,
-                              color: Colors.white,
-                            ),
                             SizedBox(width: 10),
                             Text(
-                              "Okay let's go!",
+                              "Check-in réussi !",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 20.0,
@@ -132,8 +147,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }//user created in
   void _closebadge(BuildContext context) async{
     prefs = await SharedPreferences.getInstance();
-    String? firstname = prefs.getString("firstname");
-    String? lastname = prefs.getString("lastname");
+    String? firstname = prefs.getString("prenom");
+    String? lastname = prefs.getString("nom");
     String? ticket = prefs.getString("ticket");
     showDialog(
       context: context,
@@ -146,40 +161,55 @@ class _HomeScreenState extends State<HomeScreen> {
           content: SingleChildScrollView(
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.8,
+                maxHeight: MediaQuery.of(context).size.height * 0.4,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: IconButton(
+                        icon: Icon(Icons.close),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Center(child: Text('${firstname.toString()}')),
-                        Center(child: Text('${lastname.toString()}')),
-                        SizedBox(height: 10), // Add spacing between texts and VIP status
-                        Center(
-                          child: Text(
-                            '${ticket.toString()}',
-                            style: TextStyle(
-                              fontSize: 24.0,
-                              fontWeight: FontWeight.bold,
+                    padding: const EdgeInsets.fromLTRB(0.0,0.0,0.0,4.0),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Icon(
+                            Icons.verified,
+                            color: Colors.green,
+                            size: 50,
+                          ),
+                          Center(child: Text('${firstname.toString()} ${lastname.toString()}',              style: TextStyle(
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          ),)),
+                          //Center(child: Text('')),
+                          SizedBox(height: 10), // Add spacing between texts and VIP status
+                          Center(
+                            child: Text(
+                              '${ticket.toString()}',
+                              style: TextStyle(
+                                fontSize: 20.0,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                          SizedBox(height: 10,),
+                        ],
+                      ),
                     ),
                   ),
                   GestureDetector(
@@ -188,27 +218,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.red, // Changed button color to green
+                        color: Colors.green, // Changed button color to green
                         borderRadius: BorderRadius.only(
                           bottomLeft: Radius.circular(20.0),
                           bottomRight: Radius.circular(20.0),
                         ),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(10.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.verified,
-                              color: Colors.white,
-                            ),
                             SizedBox(width: 10),
                             Text(
-                              "Okay good by!",
+                              "Check-out réussi !",
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 24.0,
+                                fontSize: 20.0,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -227,8 +253,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }//user created out
   void _Failedin(BuildContext context) async {
     prefs = await SharedPreferences.getInstance();
-    String? firstname = prefs.getString("firstname");
-    String? lastname = prefs.getString("lastname");
+    String? firstname = prefs.getString("prenom");
+    String? lastname = prefs.getString("nom");
     String? ticket = prefs.getString("ticket");
 
     showDialog(
@@ -244,28 +270,42 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.fromLTRB(0.0,0.0,0.0,4.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Center(child: Text('${firstname.toString()}')),
-                      Center(child: Text('${lastname.toString()}')),
+                      Center(
+                        child: Icon(
+                          Icons.close,
+                          color: Colors.red,
+                          size: 50,
+                        ),
+                      ),
+                      Center(child: Text('${firstname.toString()} ${lastname.toString()}',style: TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold,
+                      ),)),
+                      //Center(child: Text('')),
                       SizedBox(height: 10), // Add spacing between texts and VIP status
                       Center(
                         child: Text(
                           '${ticket.toString()}',
                           style: TextStyle(
-                            fontSize: 24.0,
+                            fontSize: 20.0,
                             fontWeight: FontWeight.bold,
                             //color: Colors.red,
                           ),
@@ -274,6 +314,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
+                SizedBox(height: 10,),
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context).pop();
@@ -287,21 +328,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(10.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.error,
-                            color: Colors.white,
-                          ),
                           SizedBox(width: 10),
                           Flexible(
                             child: Text(
-                              "Le QR code que vous avez scanné a déjà été utilisé",
+                              "QR code déjà utilisé!",
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 16.0,
+                                fontSize: 20.0,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -320,8 +357,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }//user has in event
   void _Failedout(BuildContext context) async {
     prefs = await SharedPreferences.getInstance();
-    String? firstname = prefs.getString("firstname");
-    String? lastname = prefs.getString("lastname");
+    String? firstname = prefs.getString("prenom");
+    String? lastname = prefs.getString("nom");
     String? ticket = prefs.getString("ticket");
 
     showDialog(
@@ -337,28 +374,43 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(10.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Center(child: Text('${firstname.toString()}')),
-                      Center(child: Text('${lastname.toString()}')),
+                      Center(
+                        child: Icon(
+                          Icons.close,
+                          color: Colors.red,
+                          size: 50,
+                        ),
+                      ),
+                      Center(child: Text('${firstname.toString()} ${lastname.toString()}',
+                        style: TextStyle(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.bold,
+                      ),)),
+                      //Center(child: Text('')),
                       SizedBox(height: 10), // Add spacing between texts and VIP status
                       Center(
                         child: Text(
                           '${ticket.toString()}',
                           style: TextStyle(
-                            fontSize: 24.0,
+                            fontSize: 20.0,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -366,6 +418,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
+                SizedBox(height: 10,),
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context).pop();
@@ -379,21 +432,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(10.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.error,
-                            color: Colors.white,
-                          ),
                           SizedBox(width: 10),
                           Flexible(
                             child: Text(
-                              "Le QR code que vous avez scanné a déjà été out",
+                              "Check-out déjà effectué!",
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 16.0,
+                                fontSize: 20.0,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -424,58 +473,65 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [ // Add spacing between texts and VIP status
-                      Center(
-                        child:Icon(
-                          Icons.warning,
-                          color: Colors.red,
-                          size: 48.0,
+                  padding: const EdgeInsets.fromLTRB(0.0,0.0,0.0,4.0),
+                  child: Center(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [ // Add spacing between texts and VIP status
+                        Center(
+                          child:Icon(
+                            Icons.warning,
+                            color: Colors.orangeAccent,
+                            size: 48.0,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
+                SizedBox(height: 10,),
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context).pop();
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.red,
+                      color: Colors.orangeAccent,
                       borderRadius: BorderRadius.only(
                         bottomLeft: Radius.circular(20.0),
                         bottomRight: Radius.circular(20.0),
                       ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.fromLTRB(0.0,0.0,0.0,4.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            Icons.error,
-                            color: Colors.white,
+                            Icons.warning,
+                            color: Colors.orangeAccent,
                           ),
                           SizedBox(width: 10),
                           Flexible(
                             child: Text(
-                              "Le QR code que vous avez scanné invalid",
+                              "Qrcode invalid !",
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 16.0,
+                                fontSize: 20.0,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -494,8 +550,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }//user has not found
   void _Failedoutprior(BuildContext context) async {
     prefs = await SharedPreferences.getInstance();
-    String? firstname = prefs.getString("firstname");
-    String? lastname = prefs.getString("lastname");
+    String? firstname = prefs.getString("prenom");
+    String? lastname = prefs.getString("nom");
     String? ticket = prefs.getString("ticket");
     showDialog(
       context: context,
@@ -510,28 +566,32 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.fromLTRB(0.0,0.0,0.0,4.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Center(child: Text('${firstname.toString()}')),
-                      Center(child: Text('${lastname.toString()}')),
+                      Center(child: Text('${firstname.toString()} ${lastname.toString()}')),
+                      //Center(child: Text('')),
                       SizedBox(height: 10), // Add spacing between texts and VIP status
                       Center(
                         child: Text(
                           '${ticket.toString()}',
                           style: TextStyle(
-                            fontSize: 24.0,
+                            fontSize: 20.0,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -539,6 +599,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
+                SizedBox(height: 10,),
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context).pop();
@@ -552,7 +613,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.fromLTRB(0.0,0.0,0.0,4.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -582,8 +643,107 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
-  }//user has out of event
-  Future<void> _loadData() async {
+  }
+  void _AccesFailed(BuildContext context) async {
+    prefs = await SharedPreferences.getInstance();
+    String? firstname = prefs.getString("prenom");
+    String? lastname = prefs.getString("nom");
+    String? ticket = prefs.getString("ticket");
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20.0)),
+          ),
+          contentPadding: EdgeInsets.zero,
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0.0,0.0,0.0,4.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Icon(
+                          Icons.not_interested,
+                          color: Colors.red,
+                          size: 50,
+                        ),
+                      ),
+                      Center(child: Text('${firstname.toString()} ${lastname.toString()}')),
+                      //Center(child: Text('')),
+                      SizedBox(height: 10), // Add spacing between texts and VIP status
+                      Center(
+                        child: Text(
+                          '${ticket.toString()}',
+                          style: TextStyle(
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 10,),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(20.0),
+                        bottomRight: Radius.circular(20.0),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(width: 10),
+                          Flexible(
+                            child: Text(
+                              "Check-in non autorisé",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }//user has non acces ticket
+/*  Future<void> _loadData() async {
     var url = "https://okydigital.com/buzz_login/loadconf.php";
     var res = await http.post(Uri.parse(url));
     if (res.statusCode == 200) {
@@ -596,7 +756,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       print('Failed to load conferences: ${res.statusCode}');
     }
-  }
+  }*/
   Future<void> _scan() async {
     String data = await FlutterBarcodeScanner.scanBarcode(
       "#000000",
@@ -606,28 +766,25 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (data == '-1') {
-      Fluttertoast.showToast(
-        msg: 'QR code invalid',
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-      );
+      // Fluttertoast.showToast(
+      //   msg: 'QR code invalid',
+      //   toastLength: Toast.LENGTH_SHORT,
+      //   gravity: ToastGravity.CENTER,
+      // );
     } else {
-      List<String> list1 = data.split(":");
-      if (list1.length == 6) {
-        user1 = Userscan(
-          list1[0],
-          list1[1],
-          list1[2],
-          list1[3],
-          list1[4],
-          list1[5],
-          '',
-          '',
-          '',
-          '',
-          '',
-          '',
+      List<String> list1 = data.split(";");
+      if (list1.length == 8) { // Ensure the length matches the number of fields
+        user = Userscan24(
+          nom: list1[0],
+          prenom: list1[1],
+          societe: list1[2],
+          profession: list1[3],
+          ticket: list1[4],
+          email: list1[5],
+          tel: list1[6],
+          hashedOrderId: list1[7],
         );
+        ticketscan=user.ticket.toString();
         _checkUpdateState();
       } else {
         Fluttertoast.showToast(
@@ -640,64 +797,254 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _checkUpdateState() async {
+    order=user.hashedOrderId;
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? conf = prefs.getString("conf");
-    String? statut = prefs.getString("statut");
-    var url = "https://okydigital.com/buzz_login/testsimpleapi.php";
-    var dt = {
-      "email": user1.email,
-      "id_conf": conf,
-      "statut": statut,
-    };
-
-    try {
-      var res2 = await http.post(Uri.parse(url), body: dt);
-      var jsonResponse2 = json.decode(res2.body);
-
-      if (jsonResponse2.containsKey("message")) {
-        String message = jsonResponse2["message"];
-
-        switch (message) {
-          case "No user found":
-            _Usernitfound(context);
-            break;
-          case "Failed in":
-            _Failedin(context);
-            break;
-          case "Failed out, no prior out":
-            _Failedoutprior(context);
-            break;
-          case "Created in":
-            user1 = Userscan.fromJson(jsonResponse2["user"]);
-            prefs.setString('firstname', user1.firstname ?? '');
-            prefs.setString('lastname', user1.lastname ?? '');
-            prefs.setString('ticket', user1.ticket ?? '');
-            _openbadge(context);
-            break;
-          case "Created out":
-            user1 = Userscan.fromJson(jsonResponse2["user"]);
-            prefs.setString('firstname', user1.firstname ?? '');
-            prefs.setString('lastname', user1.lastname ?? '');
-            prefs.setString('ticket', user1.ticket ?? '');
-            _closebadge(context);
-            break;
-          case "Failed out":
-            _Failedout(context);
-            break;
-          default:
-          // Handle unknown response or error
-            break;
+    String? conf = prefs.getString("conf") ?? "1";
+    String statut = prefs.getString("statut") ?? "in";
+    if(statut=="in"){
+      print("conferance  :${conf}");
+        if(conf=="3") {
+           if(ticketscan=="VIP TICKET"){
+             var url = "https://badging-ticket.jcloud-ver-jpe.ik-server.com/api/handle-in";
+             var dt = {
+               "order":order.substring(1, order.length - 1),
+               "edition_id":"104",
+               "id_conf": conf,
+             };
+             try {
+               var res2 = await http.post(Uri.parse(url), body: dt);
+               var jsonResponse2 = json.decode(res2.body);
+               if (jsonResponse2.containsKey("message")) {
+                 String message = jsonResponse2["message"];
+                 switch (message) {
+                   case "No user found":
+                     _Usernitfound(context);
+                     break;
+                   case "Failed in":
+                     _Failedin(context);
+                     break;
+                   case "Created in":
+                     user1 = Userscan24.fromJson(jsonResponse2["user"]);
+                     print(user1);
+                     // Fluttertoast.showToast(
+                     //   msg: '${user1}',
+                     //   toastLength: Toast.LENGTH_SHORT,
+                     //   gravity: ToastGravity.CENTER,
+                     // );
+                     prefs.setString('prenom', user1.prenom ?? '');
+                     prefs.setString('nom', user1.nom ?? '');
+                     prefs.setString('ticket', user1.ticket ?? '');
+                     _openbadge(context);
+                     break;
+                   default:
+                   // Fluttertoast.showToast(
+                   //   msg: 'default',
+                   //   toastLength: Toast.LENGTH_SHORT,
+                   //   gravity: ToastGravity.CENTER,
+                   // );
+                   // Handle unknown response or error
+                     break;
+                 }
+               } else {
+                 // Handle unexpected response format
+               }
+             } catch (e) {
+               // Handle network or server errors
+               print("Error: $e");
+               // Fluttertoast.showToast(
+               //   msg: 'error $e',
+               //   toastLength: Toast.LENGTH_SHORT,
+               //   gravity: ToastGravity.CENTER,
+               // );
+             }
+           }
+           else{
+             _AccesFailed(context);
+           }
+         }
+        else if(conf=="2"){
+          if(ticketscan=="VIP TICKET" || ticketscan=="ADVANCED TICKET"){
+            var url = "https://badging-ticket.jcloud-ver-jpe.ik-server.com/api/handle-in";
+            var dt = {
+              "order":order.substring(1, order.length - 1),
+              "edition_id":"104",
+              "id_conf": conf,
+            };
+            try {
+              var res2 = await http.post(Uri.parse(url), body: dt);
+              var jsonResponse2 = json.decode(res2.body);
+              if (jsonResponse2.containsKey("message")) {
+                String message = jsonResponse2["message"];
+                switch (message) {
+                  case "No user found":
+                    _Usernitfound(context);
+                    break;
+                  case "Failed in":
+                    _Failedin(context);
+                    break;
+                  case "Created in":
+                    user1 = Userscan24.fromJson(jsonResponse2["user"]);
+                    print(user1);
+                    // Fluttertoast.showToast(
+                    //   msg: '${user1}',
+                    //   toastLength: Toast.LENGTH_SHORT,
+                    //   gravity: ToastGravity.CENTER,
+                    // );
+                    prefs.setString('prenom', user1.prenom ?? '');
+                    prefs.setString('nom', user1.nom ?? '');
+                    prefs.setString('ticket', user1.ticket ?? '');
+                    _openbadge(context);
+                    break;
+                  default:
+                  // Fluttertoast.showToast(
+                  //   msg: 'default',
+                  //   toastLength: Toast.LENGTH_SHORT,
+                  //   gravity: ToastGravity.CENTER,
+                  // );
+                  // Handle unknown response or error
+                    break;
+                }
+              } else {
+                // Handle unexpected response format
+              }
+            } catch (e) {
+              // Handle network or server errors
+              print("Error: $e");
+              // Fluttertoast.showToast(
+              //   msg: 'error $e',
+              //   toastLength: Toast.LENGTH_SHORT,
+              //   gravity: ToastGravity.CENTER,
+              // );
+            }
+          }
+          else{
+            _AccesFailed(context);
+          }
         }
-      } else {
-        // Handle unexpected response format
+        else {
+          var url = "https://badging-ticket.jcloud-ver-jpe.ik-server.com/api/handle-in";
+          var dt = {
+            "order":order.substring(1, order.length - 1),
+            "edition_id":"104",
+            "id_conf": conf,
+          };
+          try {
+            var res2 = await http.post(Uri.parse(url), body: dt);
+            var jsonResponse2 = json.decode(res2.body);
+            if (jsonResponse2.containsKey("message")) {
+              String message = jsonResponse2["message"];
+              switch (message) {
+                case "No user found":
+                  _Usernitfound(context);
+                  break;
+                case "Failed in":
+                  _Failedin(context);
+                  break;
+                case "Created in":
+                  user1 = Userscan24.fromJson(jsonResponse2["user"]);
+                  print(user1);
+                  // Fluttertoast.showToast(
+                  //   msg: '${user1}',
+                  //   toastLength: Toast.LENGTH_SHORT,
+                  //   gravity: ToastGravity.CENTER,
+                  // );
+                  prefs.setString('prenom', user1.prenom ?? '');
+                  prefs.setString('nom', user1.nom ?? '');
+                  prefs.setString('ticket', user1.ticket ?? '');
+                  _openbadge(context);
+                  break;
+                default:
+                // Fluttertoast.showToast(
+                //   msg: 'default',
+                //   toastLength: Toast.LENGTH_SHORT,
+                //   gravity: ToastGravity.CENTER,
+                // );
+                // Handle unknown response or error
+                  break;
+              }
+            } else {
+              // Handle unexpected response format
+            }
+          } catch (e) {
+            // Handle network or server errors
+            print("Error: $e");
+            // Fluttertoast.showToast(
+            //   msg: 'error $e',
+            //   toastLength: Toast.LENGTH_SHORT,
+            //   gravity: ToastGravity.CENTER,
+            // );
+          }
+        }
+      // print("in 1");
+      // print("--------handle in${conf}");
+      // Fluttertoast.showToast(
+      //   msg: '--------handle in${conf}',
+      //   toastLength: Toast.LENGTH_SHORT,
+      //   gravity: ToastGravity.CENTER,
+      // );
+
+    }
+    else{
+      print("--------handle out${conf}");
+      // Fluttertoast.showToast(
+      //   msg: '--------handle out${conf}',
+      //   toastLength: Toast.LENGTH_SHORT,
+      //   gravity: ToastGravity.CENTER,
+      // );
+      var url = "https://badging-ticket.jcloud-ver-jpe.ik-server.com/api/handle-out";
+      var dt = {
+        "order": order.substring(1, order.length - 1),
+        "edition_id": "104",
+        "id_conf": conf.toString(),
+
+      };
+      try {
+        var res2 = await http.post(Uri.parse(url), body: dt);
+        var jsonResponse2 = json.decode(res2.body);
+        print("res out --------------${res2.body}");
+        // Fluttertoast.showToast(
+        //   msg: 'res out --------------${res2.body}',
+        //   toastLength: Toast.LENGTH_SHORT,
+        //   gravity: ToastGravity.CENTER,
+        // );
+        if (jsonResponse2.containsKey("message")) {
+          String message = jsonResponse2["message"];
+
+          switch (message) {
+            case "No user found":
+              _Usernitfound(context);
+              break;
+            case "Failed out, no prior out":
+              _Failedoutprior(context);
+              break;
+            case "Created out":
+              user1 = Userscan24.fromJson(jsonResponse2["user"]);
+              prefs.setString('prenom', user1.prenom ?? '');
+              prefs.setString('nom', user1.nom ?? '');
+              prefs.setString('ticket', user1.ticket ?? '');
+              _closebadge(context);
+              break;
+            case "Failed out":
+              _Failedout(context);
+              break;
+            default:
+            // Handle unknown response or error
+              break;
+          }
+        } else {
+          // Handle unexpected response format
+        }
+      } catch (e) {
+        // Handle network or server errors
+        print("Error: $e");
+        // Fluttertoast.showToast(
+        //   msg: 'Error: $e',
+        //   toastLength: Toast.LENGTH_SHORT,
+        //   gravity: ToastGravity.CENTER,
+        // );
       }
-    } catch (e) {
-      // Handle network or server errors
-      print("Error: $e");
     }
   }
-
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -771,25 +1118,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       alignment: Alignment.center,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                        child: RichText(
-                          textAlign: TextAlign.center,
-                          text: TextSpan(
-                            children: <TextSpan>[
-                              TextSpan(
-                                text: "bienvenue !",
-                                style: TextStyle(
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                  fontFamily: "Poppins",
-                                ),
-                              ),
-                            ],
-                          ),
+                        child: Image.asset(
+                          'assets/logoemec.png', // Make sure this path is correct
+                          width: 250, // Adjust the size as needed
+                          height: 250,
                         ),
                       ),
                     ),
                   ),
+
                 ],
               ),
             ),

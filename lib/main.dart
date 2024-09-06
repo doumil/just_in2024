@@ -1,12 +1,13 @@
 // @dart=2.9
 import 'dart:io';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:just_in2024/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:just_in2024/firstPage.dart';
 
 
-void main()  {
+void main() {
   runApp(MyApp());
 }
 
