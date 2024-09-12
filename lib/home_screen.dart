@@ -256,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen> {
     String? firstname = prefs.getString("prenom");
     String? lastname = prefs.getString("nom");
     String? ticket = prefs.getString("ticket");
-
+    print("ticket --------------------------------->${ticket}");
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -687,7 +687,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           size: 50,
                         ),
                       ),
-                      Center(child: Text('${firstname.toString()} ${lastname.toString()}')),
+                      Center(child: Text('${firstname.toString()} ${lastname.toString()}',
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.bold,
+                        ),)),
                       //Center(child: Text('')),
                       SizedBox(height: 10), // Add spacing between texts and VIP status
                       Center(
@@ -764,7 +768,6 @@ class _HomeScreenState extends State<HomeScreen> {
       true,
       ScanMode.QR,
     );
-
     if (data == '-1') {
       // Fluttertoast.showToast(
       //   msg: 'QR code invalid',
@@ -784,7 +787,10 @@ class _HomeScreenState extends State<HomeScreen> {
           tel: list1[6],
           hashedOrderId: list1[7],
         );
-        ticketscan=user.ticket.toString();
+        prefs = await SharedPreferences.getInstance();
+        prefs.setString('prenom', user.prenom ?? '');
+        prefs.setString('nom', user.nom ?? '');
+        prefs.setString('ticket', user.ticket ?? '');
         _checkUpdateState();
       } else {
         Fluttertoast.showToast(
@@ -801,8 +807,9 @@ class _HomeScreenState extends State<HomeScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? conf = prefs.getString("conf") ?? "1";
     String statut = prefs.getString("statut") ?? "in";
+    ticketscan=prefs.getString("ticket").toString();
+    print("conferance  :${conf}");
     if(statut=="in"){
-      print("conferance  :${conf}");
         if(conf=="3") {
            if(ticketscan=="VIP TICKET"){
              var url = "https://badging-ticket.jcloud-ver-jpe.ik-server.com/api/handle-in";
@@ -821,6 +828,7 @@ class _HomeScreenState extends State<HomeScreen> {
                      _Usernitfound(context);
                      break;
                    case "Failed in":
+
                      _Failedin(context);
                      break;
                    case "Created in":
@@ -863,7 +871,9 @@ class _HomeScreenState extends State<HomeScreen> {
            }
          }
         else if(conf=="2"){
+          print("here is conf 2 ${ticketscan}");
           if(ticketscan=="VIP TICKET" || ticketscan=="ADVANCED TICKET"){
+            print("here is scan ");
             var url = "https://badging-ticket.jcloud-ver-jpe.ik-server.com/api/handle-in";
             var dt = {
               "order":order.substring(1, order.length - 1),
@@ -918,6 +928,7 @@ class _HomeScreenState extends State<HomeScreen> {
             }
           }
           else{
+            print("else");
             _AccesFailed(context);
           }
         }
